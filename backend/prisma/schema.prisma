@@ -1,0 +1,191 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String   @id @default(cuid())
+  telegramId      BigInt   @unique
+  username        String?
+  firstName       String?
+  lastName        String?
+  profilePhoto    String?
+  
+  level           Int      @default(1)
+  experience      Int      @default(0)
+  gold            Int      @default(0)
+  gems            Int      @default(0)
+  
+  loginStreak     Int      @default(0)
+  lastLoginDate   DateTime?
+  
+  selectedCharacterId String? @unique
+  selectedCharacter   Character? @relation("SelectedCharacter", fields: [selectedCharacterId], references: [id], onDelete: SetNull)
+  
+  characters      Character[]
+  dailyQuests     DailyQuest[]
+  gameSessions    GameSession[]
+  achievements    UserAchievement[]
+  
+  playtime        Int      @default(0)
+  gamesPlayed     Int      @default(0)
+  gamesWon        Int      @default(0)
+  totalGoldEarned Int      @default(0)
+  questsCompleted Int      @default(0)
+  
+  referralCode    String?  @unique
+  referredBy      String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([telegramId])
+}
+
+model Character {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  class           String   // warrior, mage, rogue, paladin
+  level           Int      @default(1)
+  experience      Int      @default(0)
+  
+  health          Int      @default(100)
+  mana            Int      @default(50)
+  strength        Int      @default(10)
+  intelligence    Int      @default(10)
+  agility         Int      @default(10)
+  endurance       Int      @default(10)
+  
+  // Appearance
+  skinColor       String?  @default("default")
+  hairColor       String?  @default("default")
+  eyeColor        String?  @default("default")
+  
+  // Equipment
+  weapon          String?
+  armor           String?
+  accessory       String?
+  
+  // Custom properties
+  customData      String?  // JSON field for extra data
+  
+  selectedByUser  User?    @relation("SelectedCharacter")
+  gameSessions    GameSession[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model DailyQuest {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title           String
+  description     String
+  questType       String   // play_games, gain_exp, earn_gold, win_consecutive, login_streak
+  
+  objective       Int      // How many games to play, exp to gain, etc.
+  progress        Int      @default(0)
+  
+  difficulty      String   @default("normal") // easy, normal, hard, legendary
+  
+  goldReward      Int      @default(100)
+  expReward       Int      @default(50)
+  gemReward       Int      @default(0)
+  
+  completed       Boolean  @default(false)
+  completedAt     DateTime?
+  
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model GameSession {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  characterId     String
+  character       Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  
+  gameType        String   // clicker, reaction, timing, puzzle
+  score           Int
+  result          String   // win, loss, draw
+  
+  goldEarned      Int
+  expEarned       Int
+  gemEarned       Int      @default(0)
+  
+  duration        Int      // seconds
+  difficulty      String?
+  
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Leaderboard {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  username        String
+  level           Int
+  experience      Int
+  score           Int
+  
+  season          Int
+  rank            Int
+  
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  @@unique([season, rank])
+  @@index([season])
+  @@index([score])
+}
+
+model Achievement {
+  id              String   @id @default(cuid())
+  
+  achievementId   String   @unique
+  name            String
+  description     String
+  icon            String?
+  category        String   // leveling, gaming, economy, social
+  
+  goldReward      Int      @default(0)
+  gemReward       Int      @default(0)
+  
+  unlockedBy      UserAchievement[]
+  
+  createdAt       DateTime @default(now())
+}
+
+model UserAchievement {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  achievementId   String
+  achievement     Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  unlockedAt      DateTime @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
