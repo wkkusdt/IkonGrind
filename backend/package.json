@@ -2,13 +2,12 @@
   "name": "ikongrid-backend",
   "version": "1.0.0",
   "description": "Telegram Mini App RPG Bot Backend",
-  "main": "dist/server.js",
-  "type": "module",
+  "main": "server.js",
+  "type": "commonjs",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
-    "postinstall": "npm run build",
+    "start": "node server.js",
     "lint": "eslint src/**/*.ts"
   },
   "dependencies": {
