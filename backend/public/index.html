@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IkonGrind - RPG Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .game-area {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .game-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .game-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-btn:active {
+            transform: translateY(0px);
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            padding: 20px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+            width: 100%;
+            max-width: 300px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            opacity: 0.8;
+        }
+
+        .message {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚔️ IkonGrind</h1>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="level">1</div>
+                <div class="stat-label">УРОВЕНЬ</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="gold">100</div>
+                <div class="stat-label">ЗОЛОТО</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="exp">0</div>
+                <div class="stat-label">ОПЫТ</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="loading" id="loading">Загрузка игры...</div>
+        
+        <div id="gameContent" style="display: none;">
+            <div class="character">🗡️</div>
+            
+            <div id="messageArea"></div>
+            
+            <div class="game-buttons">
+                <button class="game-btn" onclick="gameAction('train')">
+                    💪 Тренировка
+                </button>
+                <button class="game-btn" onclick="gameAction('quest')">
+                    📋 Задание
+                </button>
+                <button class="game-btn" onclick="gameAction('battle')">
+                    ⚔️ Битва
+                </button>
+                <button class="game-btn" onclick="gameAction('rest')">
+                    🏕️ Отдых
+                </button>
+            </div>
+            
+            <button class="action-btn" onclick="gameAction('adventure')">
+                🎮 Приключение
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Игровые данные
+        let gameData = {
+            level: 1,
+            gold: 100,
+            exp: 0,
+            energy: 100,
+            username: 'Игрок'
+        };
+
+        // Инициализация игры
+        function initGame() {
+            // Получаем данные пользователя из Telegram
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                gameData.username = tg.initDataUnsafe.user.first_name || 'Игрок';
+            }
+
+            // Загружаем сохраненные данные или используем начальные
+            loadGameData();
+            updateUI();
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('gameContent').style.display = 'block';
+            
+            showMessage('Добро пожаловать в IkonGrind!', 'success');
+        }
+
+        // Загрузка игровых данных
+        function loadGameData() {
+            const saved = localStorage.getItem('ikongrind_data');
+            if (saved) {
+                gameData = { ...gameData, ...JSON.parse(saved) };
+            }
+        }
+
+        // Сохранение игровых данных
+        function saveGameData() {
+            localStorage.setItem('ikongrind_data', JSON.stringify(gameData));
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            document.getElementById('level').textContent = gameData.level;
+            document.getElementById('gold').textContent = gameData.gold;
+            document.getElementById('exp').textContent = gameData.exp;
+        }
+
+        // Показать сообщение
+        function showMessage(text, type = '') {
+            const messageArea = document.getElementById('messageArea');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            messageArea.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+
+        // Игровые действия
+        function gameAction(action) {
+            let message = '';
+            let goldReward = 0;
+            let expReward = 0;
+
+            switch(action) {
+                case 'train':
+                    goldReward = Math.floor(Math.random() * 20) + 10;
+                    expReward = Math.floor(Math.random() * 30) + 20;
+                    message = `💪 Тренировка завершена! +${goldReward} золота, +${expReward} опыта`;
+                    break;
+                    
+                case 'quest':
+                    goldReward = Math.floor(Math.random() * 50) + 30;
+                    expReward = Math.floor(Math.random() * 40) + 30;
+                    message = `📋 Задание выполнено! +${goldReward} золота, +${expReward} опыта`;
+                    break;
+                    
+                case 'battle':
+                    const won = Math.random() > 0.3;
+                    if (won) {
+                        goldReward = Math.floor(Math.random() * 80) + 50;
+                        expReward = Math.floor(Math.random() * 60) + 40;
+                        message = `⚔️ Победа в битве! +${goldReward} золота, +${expReward} опыта`;
+                    } else {
+                        goldReward = Math.floor(Math.random() * 10) + 5;
+                        expReward = Math.floor(Math.random() * 15) + 10;
+                        message = `⚔️ Битва проиграна, но gained +${goldReward} золота, +${expReward} опыта`;
+                    }
+                    break;
+                    
+                case 'rest':
+                    gameData.energy = Math.min(100, gameData.energy + 20);
+                    message = '🏕️ Отдых завершен! Энергия восстановлена';
+                    break;
+                    
+                case 'adventure':
+                    goldReward = Math.floor(Math.random() * 100) + 50;
+                    expReward = Math.floor(Math.random() * 80) + 60;
+                    message = `🎮 Приключение завершено! +${goldReward} золота, +${expReward} опыта`;
+                    
+                    // Проверка на новый уровень
+                    const newExp = gameData.exp + expReward;
+                    const expNeeded = gameData.level * 100;
+                    if (newExp >= expNeeded) {
+                        gameData.level++;
+                        message += `\n🎉 Поздравляем! Новый уровень: ${gameData.level}`;
+                    }
+                    break;
+            }
+
+            // Обновляем игровые данные
+            gameData.gold += goldReward;
+            gameData.exp += expReward;
+            
+            // Сохраняем и обновляем интерфейс
+            saveGameData();
+            updateUI();
+            showMessage(message, 'success');
+
+            // Отправляем данные в Telegram (опционально)
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    action: action,
+                    rewards: { gold: goldReward, exp: expReward }
+                }));
+            }
+        }
+
+        // Запускаем игру
+        initGame();
+    </script>
+</body>
+</html>

@@ -38,7 +38,7 @@ async function startServer() {
           parse_mode: 'Markdown',
           reply_markup: {
             inline_keyboard: [
-              [{ text: '🎮 Играть', web_app: { url: 'https://your-app-url.railway.app' } }],
+              [{ text: '🎮 Играть', web_app: { url: `${process.env.SERVER_URL || 'https://your-app-url.railway.app'}` } }],
               [{ text: '👤 Профиль', callback_data: 'profile' }],
               [{ text: '❓ Помощь', callback_data: 'help' }]
             ]
@@ -93,9 +93,38 @@ async function startServer() {
   // Serve static files for Mini App
   app.use(express.static('public'));
 
+  // Main Mini App route
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
+
   // Basic API routes
   app.get('/api', (req, res) => {
     res.json({ message: 'IkonGrind API is running!' });
+  });
+
+  // API для сохранения прогресса
+  app.post('/api/save-progress', (req, res) => {
+    try {
+      const { userId, gameData } = req.body;
+      // Здесь можно сохранить прогресс в базу данных
+      console.log('Saving progress for user:', userId, gameData);
+      res.json({ success: true, message: 'Progress saved' });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // API для загрузки прогресса
+  app.get('/api/load-progress/:userId', (req, res) => {
+    try {
+      const { userId } = req.params;
+      // Здесь можно загрузить прогресс из базы данных
+      console.log('Loading progress for user:', userId);
+      res.json({ success: true, data: null });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   });
 
   // Error handling middleware
