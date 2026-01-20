@@ -10,7 +10,7 @@ import cron from 'node-cron';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
@@ -64,7 +64,7 @@ app.use((err: any, req: any, res: any, next: any) => {
 });
 
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════╗
 ║        IkonGrind Backend Server        ║
